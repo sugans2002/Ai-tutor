@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@livekit/components-react": "^2.9.21",
+    "@livekit/components-styles": "^1.2.0",
+    "@monaco-editor/react": "^4.7.0",
+    "livekit-client": "^2.19.2"
+  }
+}

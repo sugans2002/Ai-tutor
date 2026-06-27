@@ -1,0 +1,12 @@
+# AI Agent — LiveKit with OpenAI plugins (STT, LLM, TTS + Silero VAD)
+livekit-agents[openai,silero]
+
+# LiveKit server SDK — needed for token generation in server.py
+livekit
+
+# Web server
+fastapi
+uvicorn[standard]
+
+# Load .env files
+python-dotenv
