@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path="../.env")
 
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
-from livekit.agents.voice_assistant import VoiceAssistant
+from livekit.agents import VoiceAssistant
 from livekit.plugins import openai, silero
 
 # -----------------------------------------------------------
