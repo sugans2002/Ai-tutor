@@ -1,5 +1,6 @@
 # AI Agent — LiveKit with OpenAI plugins (STT, LLM, TTS + Silero VAD)
 livekit-agents[openai,silero]<1.0
+av
 
 # LiveKit server SDK — needed for token generation in server.py
 livekit
