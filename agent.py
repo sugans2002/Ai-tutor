@@ -8,6 +8,8 @@ load_dotenv(dotenv_path="../.env")
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
 from livekit.plugins import openai, silero
+from livekit.agents import JobProcess
+
 
 # -----------------------------------------------------------
 # The base personality and instructions for your AI tutor
@@ -36,7 +38,7 @@ async def entrypoint(ctx: JobContext):
     # Build the Voice Assistant pipeline (the CORRECT way)
     # -----------------------------------------------------------
     assistant = VoiceAssistant(
-        vad=silero.VAD.load(),          # Silero detects when student stops speaking
+        vad=ctx.proc.userdata["vad"],          # Silero detects when student stops speaking
         stt=openai.STT(),               # Whisper converts their speech to text
         llm=openai.LLM(model="gpt-4o-mini"),   # GPT generates the tutor response
         tts=openai.TTS(voice="alloy"),  # OpenAI speaks the response back
@@ -92,5 +94,11 @@ analyze this code and give specific, helpful feedback."""
     )
 
 
+def prewarm(proc: JobProcess):
+    proc.userdata["vad"] = silero.VAD.load()
+
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    cli.run_app(WorkerOptions(
+        entrypoint_fnc=entrypoint,
+        prewarm_fnc=prewarm,
+    ))
