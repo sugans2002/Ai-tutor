@@ -95,7 +95,7 @@ analyze this code and give specific, helpful feedback."""
 
 
 def prewarm(proc: JobProcess):
-    proc.userdata["vad"] = silero.VAD.load()
+    proc.userdata["vad"] = silero.VAD.load(force_cpu=True)
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(
