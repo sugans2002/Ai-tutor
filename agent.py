@@ -9,7 +9,7 @@ from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
 from livekit.plugins import openai, silero
 from livekit.agents import JobProcess
-from livekit.plugins import openai, silero, webrtc
+from livekit.plugins import openai, silero
 
 
 # -----------------------------------------------------------
@@ -96,7 +96,7 @@ analyze this code and give specific, helpful feedback."""
 
 
 def prewarm(proc: JobProcess):
-    proc.userdata["vad"] = webrtc.VAD()
+    proc.userdata["vad"] = silero.VAD.load(force_cpu=True)
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(
