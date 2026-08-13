@@ -38,29 +38,37 @@ async def entrypoint(ctx: JobContext):
     # -----------------------------------------------------------
     # Build the Voice Assistant pipeline (the CORRECT way)
     # -----------------------------------------------------------
- GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+  async def entrypoint(ctx: JobContext):
+    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
-assistant = VoiceAssistant(
-    vad=ctx.proc.userdata["vad"],
-    stt=openai.STT(
-        model="whisper-large-v3",
-        base_url=GROQ_BASE_URL,
-        api_key=GROQ_API_KEY
-    ),
-    llm=openai.LLM(
-        model="llama-3.3-70b-versatile",
-        base_url=GROQ_BASE_URL,
-        api_key=GROQ_API_KEY
-    ),
-    tts=openai.TTS(
-        model="playai-tts",
-        voice="Fritz-PlayAI",
-        base_url=GROQ_BASE_URL,
-        api_key=GROQ_API_KEY
-    ),
-    chat_ctx=chat_ctx,
-)
+    chat_ctx = llm.ChatContext().append(
+        role="system",
+        text=BASE_PROMPT,
+    )
+
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
+    assistant = VoiceAssistant(
+        vad=ctx.proc.userdata["vad"],
+        stt=openai.STT(
+            model="whisper-large-v3",
+            base_url=GROQ_BASE_URL,
+            api_key=GROQ_API_KEY
+        ),
+        llm=openai.LLM(
+            model="llama-3.3-70b-versatile",
+            base_url=GROQ_BASE_URL,
+            api_key=GROQ_API_KEY
+        ),
+        tts=openai.TTS(
+            model="playai-tts",
+            voice="Fritz-PlayAI",
+            base_url=GROQ_BASE_URL,
+            api_key=GROQ_API_KEY
+        ),
+        chat_ctx=chat_ctx,
+    )
 
     # -----------------------------------------------------------
     # Listen for code the student is typing in the editor
