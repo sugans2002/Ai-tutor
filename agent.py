@@ -38,7 +38,7 @@ async def entrypoint(ctx: JobContext):
     # -----------------------------------------------------------
     # Build the Voice Assistant pipeline (the CORRECT way)
     # -----------------------------------------------------------
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
 assistant = VoiceAssistant(
@@ -55,7 +55,7 @@ assistant = VoiceAssistant(
     ),
     tts=openai.TTS(
         model="playai-tts",
-        voice="Aaliyah-PlayAI",
+        voice="Fritz-PlayAI",
         base_url=GROQ_BASE_URL,
         api_key=GROQ_API_KEY
     ),
