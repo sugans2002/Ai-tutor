@@ -3,42 +3,20 @@ import json
 import os
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="../.env")
+load_dotenv()
 
-from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
+from livekit.agents import AutoSubscribe, JobContext, JobProcess, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
 from livekit.plugins import openai, silero
-from livekit.agents import JobProcess
-from livekit.plugins import openai, silero
 
+BASE_PROMPT = """You are CodeBot, a friendly AI coding tutor.
+Never give direct answers. Guide the student to find them.
+Keep responses SHORT - 1 to 3 sentences max."""
 
-# -----------------------------------------------------------
-# The base personality and instructions for your AI tutor
-# -----------------------------------------------------------
-BASE_PROMPT = """You are CodeBot, a friendly and expert AI coding tutor.
-Your rules:
-- Never give away the full answer directly. Guide the student to find it themselves.
-- Ask questions like "What do you think this line does?" to encourage thinking.
-- Be encouraging. Say things like "Great try!" or "You're almost there!"
-- Keep each voice response SHORT — 1 to 3 sentences max. This is a voice chat.
-- When you see the student's code, reference it specifically. Say "I see on line 2..."
-- If the student hasn't shared code yet, ask them to start typing in the editor."""
-
+def prewarm(proc: JobProcess):
+    proc.userdata["vad"] = silero.VAD.load(force_cpu=True)
 
 async def entrypoint(ctx: JobContext):
-    # Connect to the LiveKit room (audio only — no video needed)
-    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-
-    # Set up the chat context with our tutor personality
-    chat_ctx = llm.ChatContext().append(
-        role="system",
-        text=BASE_PROMPT,
-    )
-
-    # -----------------------------------------------------------
-    # Build the Voice Assistant pipeline (the CORRECT way)
-    # -----------------------------------------------------------
-  async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
     chat_ctx = llm.ChatContext().append(
@@ -54,77 +32,28 @@ async def entrypoint(ctx: JobContext):
         stt=openai.STT(
             model="whisper-large-v3",
             base_url=GROQ_BASE_URL,
-            api_key=GROQ_API_KEY
+            api_key=GROQ_API_KEY,
         ),
         llm=openai.LLM(
             model="llama-3.3-70b-versatile",
             base_url=GROQ_BASE_URL,
-            api_key=GROQ_API_KEY
+            api_key=GROQ_API_KEY,
         ),
         tts=openai.TTS(
             model="playai-tts",
             voice="Fritz-PlayAI",
             base_url=GROQ_BASE_URL,
-            api_key=GROQ_API_KEY
+            api_key=GROQ_API_KEY,
         ),
         chat_ctx=chat_ctx,
     )
 
-    # -----------------------------------------------------------
-    # Listen for code the student is typing in the editor
-    # -----------------------------------------------------------
-    @ctx.room.on("data_received")
-    def on_code_received(data_packet):
-        try:
-            payload = json.loads(data_packet.data.decode("utf-8"))
-
-            if payload.get("type") == "code":
-                student_code = payload.get("content", "").strip()
-
-                if not student_code:
-                    return
-
-                # Build a fresh system message that includes the current code
-                updated_prompt = f"""{BASE_PROMPT}
-
---- STUDENT'S CURRENT CODE ---
-{student_code}
-------------------------------
-The student is working on the code above. When they ask a question,
-analyze this code and give specific, helpful feedback."""
-
-                # Update the system message so the AI sees the latest code
-                for msg in chat_ctx.messages:
-                    if msg.role == "system":
-                        msg.content = updated_prompt
-                        break
-
-                print(f"[CodeBot] Received code update ({len(student_code)} chars)")
-
-        except Exception as e:
-            print(f"[CodeBot] Error reading code from editor: {e}")
-
-    # -----------------------------------------------------------
-    # Start the session and greet the student
-    # -----------------------------------------------------------
     assistant.start(ctx.room)
-
-    # Small pause so the audio connection is ready before speaking
-    await asyncio.sleep(1.5)
-
-    await assistant.say(
-        "Hello! I am CodeBot, your AI coding tutor. "
-        "Start typing your code in the editor on the left and I will be able to see it. "
-        "Then ask me anything — just speak!"
-    )
-
-
-def prewarm(proc: JobProcess):
-    proc.userdata["vad"] = silero.VAD.load(force_cpu=True)
+    await assistant.say("Hello! I am CodeBot. Start typing your code and ask me anything!")
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(
         entrypoint_fnc=entrypoint,
         prewarm_fnc=prewarm,
-	initialize_process_timeout=120.0,
+        initialize_process_timeout=120.0,
     ))
